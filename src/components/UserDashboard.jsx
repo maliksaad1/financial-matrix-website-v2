@@ -106,7 +106,14 @@ const UserDashboard = () => {
         <h3 className="text-2xl font-semibold text-primary mb-4">Welcome, {profile?.name || user.email}!</h3>
         <p className="text-foreground mb-2"><strong>Email:</strong> {user.email}</p>
         <p className="text-foreground mb-2"><strong>Referral Code:</strong> {profile?.referral_code || 'N/A'}</p>
-        <p className="text-foreground mb-4"><strong>Referral Count:</strong> {profile?.referral_count || 0}</p>
+        <p className="text-foreground mb-2"><strong>Referral Count:</strong> {profile?.referral_count || 0}</p>
+        <p className="text-foreground mb-4">
+          <strong>Your Referral Link:</strong>
+          <span className="ml-2 text-primary cursor-pointer" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/auth?referral=${profile?.referral_code}`)}>
+            {`${window.location.origin}/auth?referral=${profile?.referral_code}`}
+            <span className="ml-1 text-sm text-muted-foreground">(Click to copy)</span>
+          </span>
+        </p>
 
         <h4 className="text-xl font-semibold text-primary mb-3">Invite Friends</h4>
         <form onSubmit={handleInvite} className="space-y-4">

@@ -4,15 +4,55 @@ import { supabase } from '../lib/supabaseClient';
 
 const Navbar = () => {
   const [session, setSession] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchSessionAndRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-    });
+
+      if (session) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching user role:', profileError.message);
+        } else if (profileData && profileData.role === 'admin') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    fetchSessionAndRole();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        const fetchRoleOnAuthChange = async () => {
+          const { data: profileData, error: profileError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error fetching user role on auth change:', profileError.message);
+          } else if (profileData && profileData.role === 'admin') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        };
+        fetchRoleOnAuthChange();
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => {
@@ -45,6 +85,11 @@ const Navbar = () => {
           {session && (
             <Link to="/dashboard" className="hover:text-primary transition-colors">
               Dashboard
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/admin" className="hover:text-primary transition-colors">
+              Admin
             </Link>
           )}
           {session ? (

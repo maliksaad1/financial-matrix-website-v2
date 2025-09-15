@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [bots, setBots] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [newBot, setNewBot] = useState({
     title: '',
     description: '',
@@ -16,10 +18,41 @@ const AdminDashboard = () => {
   });
   const [editingBot, setEditingBot] = useState(null);
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const checkAdminStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth'); // Redirect to login if not authenticated
+        return;
+      }
+
+      // Fetch user profile to check role
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError.message);
+        setError('Failed to fetch user role.');
+        setLoading(false);
+        return;
+      }
+
+      if (profileData && profileData.role === 'admin') {
+        setIsAdmin(true);
+        fetchData(); // Fetch admin data only if user is admin
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [navigate]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -137,6 +170,10 @@ const AdminDashboard = () => {
 
   if (error) {
     return <div className="text-center py-10 text-destructive">Error: {error}</div>;
+  }
+
+  if (!isAdmin) {
+    return <div className="text-center py-10 text-xl text-destructive">Access Denied: You do not have administrative privileges.</div>;
   }
 
   return (
@@ -288,6 +325,7 @@ const AdminDashboard = () => {
                 <th className="py-2 px-4 text-left">WhatsApp</th>
                 <th className="py-2 px-4 text-left">Referral Code</th>
                 <th className="py-2 px-4 text-left">Referral Count</th>
+                <th className="py-2 px-4 text-left">Role</th>
               </tr>
             </thead>
             <tbody>
@@ -298,6 +336,7 @@ const AdminDashboard = () => {
                   <td className="py-2 px-4">{user.whatsapp || 'N/A'}</td>
                   <td className="py-2 px-4">{user.referral_code || 'N/A'}</td>
                   <td className="py-2 px-4">{user.referral_count}</td>
+                  <td className="py-2 px-4">{user.role}</td>
                 </tr>
               ))}
             </tbody>

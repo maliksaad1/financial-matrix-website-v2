@@ -5,6 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/financial-matrix-website-v2/',
   build: {
     outDir: 'docs',
   },

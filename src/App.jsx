@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
@@ -11,7 +11,7 @@ import Auth from './components/Auth';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter basename="/financial-matrix-website-v2/">
       <div className="min-h-screen flex flex-col bg-background text-foreground">
         <Navbar />
         <main className="flex-grow">
@@ -26,7 +26,7 @@ function App() {
         </main>
         <Footer />
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 
